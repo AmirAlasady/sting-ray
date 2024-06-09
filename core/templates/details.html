@@ -1,0 +1,286 @@
+{% extends "base.html" %}
+
+{% block title %}Chat Details{% endblock %}
+
+{% block content %}
+<<style>
+  /* Make the background dark gray */
+  body {
+    background-color: #131f24;
+    margin: 0; /* Remove default margin */
+  }
+
+  /* Style the chat list */
+  .chat-list {
+    list-style: none;
+    padding: 0;
+    max-width: 800px;
+    margin: 40px auto; /* Center the chat list */
+    padding: 20px;
+    border: 1px solid #666;
+    border-radius: 10px;
+    background-color: #131f24;
+  }
+
+  /* Style the form */
+  form {
+    max-width: 600px;
+    margin: 0 auto; /* Center the form */
+    padding: 20px;
+    border: 1px solid #666;
+    position: fixed;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    bottom: 20px;
+    z-index: 999; /* Ensure it appears above other elements */
+  }
+
+  #myForm {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    max-width: 600px;
+    margin: 0 auto; /* Center horizontally */
+    padding: 20px;
+    border: 1px solid #666;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 999; /* Ensure it appears above other elements */
+  }
+
+  /* Style the files list */
+  #file-list {
+    position: absolute; /* Position it absolutely */
+    top: 0;
+    left: 0;
+    width: 200px;
+    position: fixed;
+    background-color: #f9f9f9;
+    border: 1px solid #ccc;
+    padding: 10px;
+  }
+
+  #file-list h2 {
+    margin-top: 0;
+  }
+
+  #file-list ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+
+  #file-list li {
+    padding: 10px;
+    border-bottom: 1px solid #ccc;
+  }
+
+  #file-list li:last-child {
+    border-bottom: none;
+  }
+
+  /* New style for the file name */
+  .file-name {
+    display: inline-block;
+    padding: 5px 10px;
+    background-color: #000;
+    color: #fff;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  /* Adjust button margin */
+  button[type="submit"],
+  .audio-btn {
+    margin-top: 10px;
+  }
+
+  /* Style the chat messages */
+  .message {
+    background-color: #007bff; /* Dark blue background */
+    color: #fff; /* White text */
+    padding: 10px;
+    border-radius: 10px;
+    margin-bottom: 10px;
+  }
+
+  /* Style the chat messages of different sides */
+  .you {
+    background-color: #007bff; /* Dark blue background */
+  }
+
+  .ai {
+    background-color: #007bff; /* Dark blue background */
+  }
+</style>
+
+<aside id="file-list">
+  <br>
+  <br>
+  <br>
+  <h2>Files</h2>
+  <ul>
+    {% for file in files_data %}
+    <li>
+        <span class="file-name">{{ file.file }}</span>    
+        <button class="delete-btn" onclick="if(confirm('deleate file')) { location.href='{% url 'deleate_file' pk=pk id=file.id%}'; }">Delete</button>
+    </li>
+    {% empty %}
+    <li>No files found.</li>
+    {% endfor %}
+</ul>
+  <form id="upload-form" method="post" action="{% url 'upload_file' pk %}" enctype="multipart/form-data">
+    {% csrf_token %}
+      <h3>Upload File</h3>
+      <label for="file_upload">Select a file:</label><br>
+      <input type="file" id="file_upload" name="file" required><br><br>
+      <button type="submit">Upload</button>
+  </form>
+</aside>
+
+<h1 style="text-align: center;">Chat Details</h1>
+<ul class="chat-list">
+  {% for chat in chat %}
+  <li class="chat-item">
+      <div class="message you">
+          <h3>You</h3>
+          <p>{{ chat.query | safe }}</p>
+          <button class="copy-btn" data-message="{{ chat.query }}">Copy</button>
+      </div>
+      <div class="message ai">
+          <h3>Ai</h3>
+          <p>{{ chat.answer | safe }}</p>
+          <button class="copy-btn" data-message="{{ chat.answer }}">Copy</button>
+          <button class="read-btn" data-message="{{ chat.answer }}">Read Aloud</button>
+          <br>
+      </div>
+      <br>
+  </li>
+  <br>
+  <br>
+  <br>
+  <br>
+  <br>
+  {% empty %}
+  <li>No chats found.</li>
+  {% endfor %}
+</ul>
+
+<form method="post" action="{% url 'ask' pk %}" id="myForm">
+  {% csrf_token %}
+  <label for="option">Choose an Option:</label>
+  <select id="option" name="option" required>
+      <option value="option1">Online</option>
+      <option value="option2">Offline</option>
+  </select>
+  <br><br>
+  <label for="query">Your Query:</label>
+  <input type="text" id="query" name="query" maxlength="9000">
+  <button type="button" id="start-audio" class="audio-btn"> Hold to Speak</button>
+  <br>
+  <label for="system">system: (optional)</label>
+  <input type="text" id="system" name="system" placeholder="Optional" maxlength="5000">
+  <br><br>
+  <button type="submit">Submit</button>
+</form>
+<script>
+  function scrollBtn(){
+    window.scrollTo(0,document.body.scrollHeight);
+  };
+  const form = document.getElementById('myForm');
+
+  scrollBtn()
+  // Add Javascript to handle copy button functionality
+  const copyButtons = document.querySelectorAll('.copy-btn');
+  copyButtons.forEach(button => {
+    button.addEventListener('click', () => {
+      const message = button.dataset.message;
+      navigator.clipboard.writeText(message)
+        .then(() => {
+          console.log('Message copied to clipboard');
+        })
+        .catch(err => {
+          console.error('Failed to copy message:', err);
+        });
+    });
+});
+
+// Add autoscroll functionality
+const chatList = document.querySelector('.chat-list');
+chatList.addEventListener('DOMSubtreeModified', () => {
+  chatList.scrollTop = chatList.scrollHeight;
+});
+
+// Speech recognition functionality
+const startButton = document.getElementById('start-audio');
+const queryInput = document.getElementById('query');
+
+if ('webkitSpeechRecognition' in window) {
+  const recognition = new webkitSpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onstart = () => {
+    console.log('Voice recognition started. Try speaking into the microphone.');
+    startButton.textContent = 'Listening...';
+  };
+
+  recognition.onresult = (event) => {
+    const transcript = event.results[0][0].transcript;
+    queryInput.value = transcript;
+    console.log('Voice recognition result: ', transcript);
+  };
+
+  recognition.onerror = (event) => {
+    console.error('Voice recognition error', event.error);
+  };
+
+  recognition.onend = () => {
+    console.log('Voice recognition ended.');
+    startButton.textContent = ' Hold to Speak';
+  };
+
+  startButton.addEventListener('mousedown', () => {
+    recognition.start();
+  });
+
+  startButton.addEventListener('mouseup', () => {
+    recognition.stop();
+  });
+
+  startButton.addEventListener('touchstart', () => {
+    recognition.start();
+  });
+
+  startButton.addEventListener('touchend', () => {
+    recognition.stop();
+  });
+} else {
+  console.log('Speech recognition not supported in this browser.');
+}
+
+// Text-to-speech functionality
+let speechSynthesisUtterance = null;
+
+const readButtons = document.querySelectorAll('.read-btn');
+readButtons.forEach(button => {
+  button.addEventListener('click', () => {
+    const message = button.dataset.message;
+    if (speechSynthesisUtterance) {
+      speechSynthesis.cancel();
+      speechSynthesisUtterance = null;
+    } else {
+      speechSynthesisUtterance = new SpeechSynthesisUtterance(message);
+      speechSynthesis.speak(speechSynthesisUtterance);
+    }
+  });
+});
+</script>
+{% endblock %}
+

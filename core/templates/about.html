@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+
+{% block title %}about{% endblock %}
+
+
+{% block content %}
+<style>
+    /* Internal CSS */
+    body {
+        font-family: 'Open Sans', sans-serif;
+        background-color: #f7f7f7;
+    }
+    .container {
+        max-width: 800px;
+        margin: 40px auto;
+        padding: 20px;
+        background-color: #fff;
+        border: 1px solid #ddd;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        border-radius: 10px;
+    }
+    .about-content {
+        padding: 20px;
+    }
+    .about-content p {
+        margin-bottom: 20px;
+    }
+    .about-content h2 {
+        font-weight: bold;
+        margin-top: 0;
+    }
+    .signature {
+        font-size: 18px;
+        font-style: italic;
+        text-align: right;
+    }
+</style>
+
+{% endblock %}

@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+
+{% block title %}Conversations{% endblock %}
+
+{% block content %}
+<style>
+    body {
+        font-family: 'Open Sans', sans-serif;
+    }
+    h1 {
+        text-align: center;
+        color: #444;
+        margin-top: 50px;
+    }
+    .conversations-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        margin-top: 20px;
+    }
+    .conversation-card {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        width: 100%;
+        max-width: 600px;
+        margin: 10px 0;
+        padding: 20px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+    .conversation-card a {
+        text-decoration: none;
+        color: #007bff;
+        font-weight: 600;
+    }
+    .conversation-card a:hover {
+        color: #0056b3;
+    }
+    .delete-btn {
+        background-color: #dc3545;
+        color: #fff;
+        border: none;
+        padding: 5px 10px;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    .delete-btn:hover {
+        background-color: #c82333;
+    }
+    .create-form {
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        padding: 20px;
+        width: 100%;
+        max-width: 600px;
+        margin-top: 30px;
+        text-align: center;
+    }
+    .create-form label {
+        display: block;
+        margin-bottom: 10px;
+        font-weight: 600;
+        color: #444;
+    }
+    .create-form input[type="text"] {
+        width: 80%;
+        padding: 10px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+    }
+    .create-form button {
+        background-color: #007bff;
+        color: #fff;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+    }
+    .create-form button:hover {
+        background-color: #0056b3;
+    }
+</style>
+
+<h1>Conversations</h1>
+
+
+<div class="conversations-container">
+  {% for conversation in conversations %}
+    <div class="conversation-card">
+      <a href="{% url 'details' pk=conversation.id %}">{{ conversation.title }}</a>
+      <form action="{% url 'update' pk=conversation.id %}" method="get">
+        {% csrf_token %}
+        <label>rename</label>
+        <input type="text" id="new_title" name="new_title" maxlength="30">
+        <button type="submit">change</button>
+      </form>
+      <button class="delete-btn" onclick="if(confirm('Are you sure you want to delete this conversation?')) { location.href='{% url 'deleate' pk=conversation.id %}'; }">Delete</button>
+    </div>
+  {% empty %}
+    <p>No conversations found.</p>
+  {% endfor %}
+</div>
+
+<div class="create-form">
+  <form method="post" action="{% url 'showconvs' %}">
+    {% csrf_token %}
+    <label for="title">Conversation Title:</label>
+    <input type="text" id="title" name="title" maxlength="30" required>
+    <button type="submit">Create Conversation</button>
+  </form>
+</div>
+
+{% endblock %}

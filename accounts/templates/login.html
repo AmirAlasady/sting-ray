@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block content %}
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      max-width: 500px;
+      margin: 40px auto;
+      padding: 20px;
+      background-color: #fff;
+      border: 1px solid #ddd;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    }
+    
+    .card-header {
+      background-color: #337ab7;
+      color: #fff;
+      padding: 10px;
+      text-align: center;
+    }
+    
+    .card-body {
+      padding: 20px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    .form-control {
+      width: 100%;
+      height: 40px;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+    }
+    
+    .btn {
+      width: 100%;
+      height: 40px;
+      padding: 10px;
+      font-size: 16px;
+      background-color: #337ab7;
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    
+    .btn:hover {
+      background-color: #23527c;
+    }
+    
+    #error-message {
+      color: #red;
+      font-size: 14px;
+      margin-bottom: 10px;
+    }
+  </style>
+  
+  <div class="container">
+    <div class="card-header">
+      <h4>Login</h4>
+    </div>
+    <div class="card-body">
+      <form action={% url "login" %} method="POST">
+        {% csrf_token %}
+        <div class="form-group">
+          <label for="email">Email:</label>
+          <input type="email" id="email" name="email" class="form-control" required>
+        </div>
+        <div class="form-group">
+          <label for="password">Password:</label>
+          <input type="password" id="password" name="password" class="form-control" required>
+        </div>
+        <button type="submit" class="btn">Log in</button>
+        <p id="error-message"></p>
+      </form>
+    </div>
+  </div>
+{% endblock %}
