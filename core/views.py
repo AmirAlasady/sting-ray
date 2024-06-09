@@ -4,9 +4,11 @@ import requests
 from django.urls import reverse
 from ai_api.models import *
 
+# config whre to run the head of the system 'frontend'
+host='127.0.0.1' # or depolyment domain
 # Create your views here.
 def get_token():
-    url = "http://192.168.1.107:8000/api/auth/jwt/create/"
+    url = f"http://{host}:8000/api/auth/jwt/create/"
     data = {
         'email': 'gtavidk12343@gmail.com',
         'password': '12345abce'
@@ -26,11 +28,11 @@ def about(request):
 
 def showconvs(request):
     headers=get_auth_header() 
-    url = "http://192.168.1.107:8000/ai_api/conversations"
+    url = f"http://{host}:8000/ai_api/conversations"
     if request.method=="POST":
         title=request.POST['title']
         #print(title)
-        url2="http://192.168.1.107:8000/ai_api/conversations/create"
+        url2=f"http://{host}:8000/ai_api/conversations/create"
         data = {'title': title}  # Key-value pair with title as data
         response = requests.post(url2, headers=headers, data=data)
         if response.status_code == 200:  
@@ -47,7 +49,7 @@ def showconvs(request):
 
 def deleate(request,pk):
     headers=get_auth_header() 
-    url = "http://192.168.1.107:8000/ai_api/conversations/"
+    url = f"http://{host}:8000/ai_api/conversations/"
     url += str(pk)
     response = requests.delete(url,headers=headers)
     if response.status_code == 200:  
@@ -61,9 +63,9 @@ def deleate(request,pk):
 
 def details(request,pk):
     headers=get_auth_header() 
-    url = "http://192.168.1.107:8000/ai_api/conversations/"
+    url = f"http://{host}:8000/ai_api/conversations/"
     url += str(pk)
-    files_url='http://192.168.1.107:8000/ai_api/files/show/'
+    files_url=f'http://{host}:8000/ai_api/files/show/'
     files_url += str(pk)
     response = requests.get(url,headers=headers)
     file_response = requests.get(files_url,headers=headers)
@@ -76,7 +78,7 @@ def details(request,pk):
 def upload_file(request,pk):
     if request.method=="POST":
         headers=get_auth_header() 
-        url='http://192.168.1.107:8000/ai_api/files/upload/'
+        url=f'http://{host}:8000/ai_api/files/upload/'
         url += str(pk)
         file = request.FILES['file']
         if file:
@@ -94,7 +96,7 @@ def upload_file(request,pk):
     
 def deleate_file(request,pk,id):
     headers=get_auth_header() 
-    url=f'http://192.168.1.107:8000/ai_api/files/remove/{str(pk)}/{str(id)}'
+    url=f'http://{host}:8000/ai_api/files/remove/{str(pk)}/{str(id)}'
     response = requests.delete(url,headers=headers)
     if response.status_code == 200:  
         print('deleated! ')
@@ -110,7 +112,7 @@ def ask(request,pk):
         option = request.POST.get('option')
         system = request.POST.get('system', '')
         #print(title)
-        url = "http://192.168.1.107:8000/ai_api/conversations/"
+        url = f"http://{host}:8000/ai_api/conversations/"
         url += str(pk)
         data = {
                 'query': query,
@@ -127,7 +129,7 @@ def ask(request,pk):
 
 def update(request,pk):
     headers=get_auth_header()
-    url = "http://192.168.1.107:8000/ai_api/conversations/update/"
+    url = f"http://{host}:8000/ai_api/conversations/update/"
     url += str(pk)
     title=request.GET['new_title']
     data = {"title":title} 
