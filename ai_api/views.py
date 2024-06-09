@@ -64,6 +64,7 @@ def ask_llama3(q,context):
     return a
 """
 memory = ConversationBufferMemory()
+
 ollama = Ollama(base_url='http://localhost:11434',model="llama3")
 conversation = ConversationChain(
     llm=ollama, 
@@ -199,6 +200,7 @@ class ConversationDetailView(APIView):
                     * If a tool is not needed, you will respond normally to the user's message, providing a helpful and accurate answer.
                     * dont give the answe even if you know it dont give the answer at all. NEVER ANSWER ANYTHING WITHOU USING THE TOOL FOR IT !!
                     **Note:** When a tool is not required, respond to the user's message as you would in a normal conversation, providing a helpful and accurate answer.
+                    **Note:** if no tool is required. there is no need for using any tool so just interact normally with me and my messages dont do like 'the result is 0'.
                     **Rules:**
                     * If a tool is needed, you will respond with the json format as: `
                         {
@@ -215,15 +217,15 @@ class ConversationDetailView(APIView):
                     | add | [number1, number2] | the_sum_of_operands_1_plus_2 | adds the numbers together |      
                     | sub | [number1, number2] | the_sub_of_operands_1_minuse_2 | subtracts number2 from number1 | 
                      """
-            try:
-                html_q_controll = markdown.markdown(prompt, extensions=['tables', 'fenced_code', 'def_list'])
+            html_q_controll = markdown.markdown(prompt, extensions=['tables', 'fenced_code', 'def_list'])
+            try:             
                 answer = ask_model2(html_q_controll)
                 chat = Chat(query=html_q_controll, answer=answer, conversation=conversation,chat_type='c')
                 chat.save()
             except:
-                print('failed api call')
+                print('failed online api call')
             try:
-                ask_llama3(prompt)
+                ask_llama3(html_q_controll)
             except:
                 print('failed local call')
             
@@ -253,6 +255,7 @@ class ConversationDetailView(APIView):
                     try:
                         print('online')
                         for j in chunks_list:
+                            j = markdown.markdown(j, extensions=['tables', 'fenced_code', 'def_list'])
                             answer = ask_model2(j)
                             print('answer---------------')
                             chat = Chat(query=j, answer=answer, conversation=conversation, chat_type='r')
@@ -267,9 +270,15 @@ class ConversationDetailView(APIView):
                     try:
                         print('local')
                         for jj in chunks_list:
+                            jj = markdown.markdown(jj, extensions=['tables', 'fenced_code', 'def_list'])
                             ask_llama3(jj)
+                            print('answer---------------')
                         print('end local')
+                        file.is_read = 't'
+                        file.save()
                     except:
+                        file.is_read = 'f'
+                        file.save()
                         print('failed local call')
                     
 
@@ -288,6 +297,7 @@ class ConversationDetailView(APIView):
                     try:
                         print('online')
                         for j in chunks_list:
+                            j = markdown.markdown(j, extensions=['tables', 'fenced_code', 'def_list'])
                             answer = ask_model2(j)
                             print('answer---------------')
                             chat = Chat(query=j, answer=answer, conversation=conversation, chat_type='r')
@@ -295,6 +305,9 @@ class ConversationDetailView(APIView):
                         file.is_read = 't'
                         file.save()
                         print('end online')
+                        # make a flag to indecate the read state by onlinemodel or ofline model to avoid a model that read it but other didnt and dont make the mboth read if one didnt
+
+
                     except: 
                         file.is_read = 'f'
                         file.save()
@@ -302,9 +315,14 @@ class ConversationDetailView(APIView):
                     try:
                         print('local')
                         for jj in chunks_list:
+                            jj = markdown.markdown(jj, extensions=['tables', 'fenced_code', 'def_list'])
                             ask_llama3(jj)
+                        file.is_read = 't'
+                        file.save()
                         print('end local')
                     except:
+                        file.is_read = 'f'
+                        file.save()
                         print('failed local call')
                    
                 elif file_extension in ['.doc', '.docx']:
@@ -322,19 +340,25 @@ class ConversationDetailView(APIView):
         system = request.data.get('system')
         if system: 
             last_system_chat = Chat.objects.filter(conversation=conversation,chat_type='s').order_by('-id').first()  # Order by descending ID and get the first object
-            template=f'respond as if you are : {system} : and act like it '
+            template=f'this is a system message follow what is says the message: {system}. end of system message: acknowledge and act and follow what is says!'
+            template = markdown.markdown(template, extensions=['tables', 'fenced_code', 'def_list'])
             if last_system_chat:
                 last_system_chat.delete()
                 print("Last system chat deleted successfully!")
             else:
-                print("No system chat found for conversation", conversation)
-            answer = ask_model2(template)
-            chat = Chat(query=system, answer=answer, conversation=conversation, chat_type='s')
-            chat.save()
+                print("No system chat found for conversation:", conversation)
+            try:
+                answer = ask_model2(template)
+                chat = Chat(query=system, answer=answer, conversation=conversation, chat_type='s')
+                chat.save()
+            except:
+                print('failed to inject system message to llama3 online api.')
+            
             try:
                 ask_llama3(template)
             except:
-                pass
+                print('failed to inject system message to llama3 ofline api.')
+
         if not query:
             return Response({'error': 'Query is required'}, status=400)
         if not option:
@@ -351,6 +375,7 @@ class ConversationDetailView(APIView):
                     "content": chat.answer,
                 })
             try:
+                query = markdown.markdown(query, extensions=['tables', 'fenced_code', 'def_list'])
                 answer = ask_model2(query, context)
                 # agent tooling
                 pattern = r'{.*?}'
@@ -359,16 +384,17 @@ class ConversationDetailView(APIView):
                     json_str = match.group(0)
                     json_dict = json.loads(json_str)
                     print((json_dict))
+                    res=0
                     if json_dict['tool_name']=='add':
-                        res=json_dict['operands'][0]+json_dict['operands'][1]
+                        res=float(json_dict['operands'][0])+float(json_dict['operands'][1])
                         print(f'result of add is: {res}')
                     elif json_dict['tool_name']=='sub':
-                        res=json_dict['operands'][0]-json_dict['operands'][1]
+                        res=float(json_dict['operands'][0])-float(json_dict['operands'][1])
                         print(f'result of sub is: {res}')
                     
                     tmp_prompt=f'the result is {res}'
                     html = markdown.markdown(tmp_prompt, extensions=['tables', 'fenced_code', 'def_list'])
-                    #here consider saving the json ai answer for th e ai to future refrance its self using that template as i aggreed up with
+                    #here consider saving the json ai answer for the ai to future refrance its self using that template as i aggreed up with
                     chat = Chat(query=query, answer=html, conversation=conversation)
                     chat.save()
                 else:
@@ -380,29 +406,34 @@ class ConversationDetailView(APIView):
                 return Response({'error': 'rate limmit reached'}, status=500)
 
         if option == 'option2':
-            answer = ask_llama3(query)
-            # agent tooling
-            pattern = r'{.*?}'
-            match = re.search(pattern, answer, re.DOTALL)
-            if match:
-                json_str = match.group(0)
-                json_dict = json.loads(json_str)
-                print((json_dict))
-                if json_dict['tool_name']=='add':
-                    res=json_dict['operands'][0]+json_dict['operands'][1]
-                    print(f'result of add is: {res}')
-                elif json_dict['tool_name']=='sub':
-                    res=json_dict['operands'][0]-json_dict['operands'][1]
-                    print(f'result of sub is: {res}')
-                tmp_prompt=f'the result is {res}'
-                html = markdown.markdown(tmp_prompt, extensions=['tables', 'fenced_code', 'def_list'])
-                chat = Chat(query=query, answer=html, conversation=conversation)
-                chat.save()
-            else:
-                print("No JSON dictionary found (OFLINE)")
-                html = markdown.markdown(answer, extensions=['tables', 'fenced_code', 'def_list'])
-                chat = Chat(query=query, answer=html, conversation=conversation)
-                chat.save()
+            try:
+                query = markdown.markdown(query, extensions=['tables', 'fenced_code', 'def_list'])
+                answer = ask_llama3(query)
+                # agent tooling
+                pattern = r'{.*?}'
+                match = re.search(pattern, answer, re.DOTALL)
+                if match:
+                    res=0
+                    json_str = match.group(0)
+                    json_dict = json.loads(json_str)
+                    print((json_dict))
+                    if json_dict['tool_name']=='add':
+                        res=float(json_dict['operands'][0])+float(json_dict['operands'][1])
+                        print(f'result of add is: {res}')
+                    elif json_dict['tool_name']=='sub':
+                        res=float(json_dict['operands'][0])-float(json_dict['operands'][1])
+                        print(f'result of sub is: {res}')
+                    tmp_prompt=f'the result is {res}'
+                    html = markdown.markdown(tmp_prompt, extensions=['tables', 'fenced_code', 'def_list'])
+                    chat = Chat(query=query, answer=html, conversation=conversation)
+                    chat.save()
+                else:
+                    print("No JSON dictionary found (OFLINE)")
+                    html = markdown.markdown(answer, extensions=['tables', 'fenced_code', 'def_list'])
+                    chat = Chat(query=query, answer=html, conversation=conversation)
+                    chat.save()
+            except:
+                print('offline problems')
         
         serializer = ChatSerializer(chat)
         return Response(serializer.data, status=201)

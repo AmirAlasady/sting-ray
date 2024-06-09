@@ -31,7 +31,7 @@ def Signup(request):
         're_password': re_password
         }
 
-        url = "http://127.0.0.1:8000/api/auth/users/"
+        url = "http://192.168.1.107:8000/api/auth/users/"
 
         response = requests.post(url, json=data)
 
@@ -57,7 +57,7 @@ def login(request):
         'password': password,
         }
 
-        url = "http://127.0.0.1:8000/api/auth/jwt/create/"
+        url = "http://192.168.1.107:8000/api/auth/jwt/create/"
         response = requests.post(url, json=data)
 
         # Check the response status code
