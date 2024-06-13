@@ -14,54 +14,23 @@ We present an AI personal assistant application that aims to be helpful, efficie
 2. Navigate to `<name_example>`: `cd <name_example>`.
 3. Create a virtual environment: `python -m venv <env_name>`.
 4. Navigate to `<env_name>`: `cd <env_name>`.
-5. Activate the environment: 
-	`<.\Scripts\activate>`
-6. Clone the repository:
-	`<git clone https://github.com/AmirAlasady/sting-ray.git>`
-7. Navigate to the cloned repository: `cd .\sting-ray\`.
-8. Install requirements:
-	`<pip install -r .\requirements.txt>`
-9. Navigate to the `/sting-ray.git/root_config.py` file in the project and configure the options:
-```python
-config={
-    "mode_name_online":'llama3-70b-8192', # model name for online API
-    "api_key_online":'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', # put your key here from https://console.groq.com/keys
-    "mode_name_offline":'llama3', # offline local model name
-    "api_key_offline":'http://localhost:11434', # offline local endpoint
-    "context_window":50, # context window "bigger is better but takes a lot of resources *not recommended for low-end devices to set above 50*"
-    "root_ip_host":'127.0.0.1' # root IP *change this to local LAN IP for LAN usage or general deployment IP*
-}
-
-ChatGPT
-Sure, here's the provided text formatted in Markdown:
-
-markdown
-Copy code
-## Installation:
-
-**Note:** Install Python as a prerequisite and add it to the PATH.
-
-1. Create a folder `<name_example>`.
-2. Navigate to `<name_example>`: `cd <name_example>`.
-3. Create a virtual environment: `python -m venv <env_name>`.
-4. Navigate to `<env_name>`: `cd <env_name>`.
 5. Activate the environment:
-.\Scripts\activate
 
-markdown
-Copy code
-6. Clone the repository:
-git clone https://github.com/AmirAlasady/sting-ray.git
+   
+   .\Scripts\activate
+   
+7. Clone the repository:
 
-markdown
-Copy code
-7. Navigate to the cloned repository: `cd .\sting-ray\`.
-8. Install requirements:
-pip install -r .\requirements.txt
 
-bash
-Copy code
-9. Navigate to the `/sting-ray.git/root_config.py` file in the project and configure the options:
+   git clone https://github.com/AmirAlasady/sting-ray.git
+ 
+9. Navigate to the cloned repository: `cd .\sting-ray\`.
+10. Install requirements:
+
+
+	pip install -r .\requirements.txt
+
+12. Navigate to the `/sting-ray.git/root_config.py` file in the project and configure the options:
 ```python
 config={
     "mode_name_online":'llama3-70b-8192', # model name for online API
@@ -71,10 +40,12 @@ config={
     "context_window":50, # context window "bigger is better but takes a lot of resources *not recommended for low-end devices to set above 50*"
     "root_ip_host":'127.0.0.1' # root IP *change this to local LAN IP for LAN usage or general deployment IP*
 }
+```
+
 You can run this on LAN by changing the root_ip_host to your own device IP and saving the changes.
 10. Run the server on the IP you selected on root_ip_host at port 8000:
 - For local use: python -m manage runserver 127.0.0.1:8000
-- For LAN use: python -m manage runserver <your LAN private IP>:8000
+- For LAN use: python -m manage runserver 'your LAN private IP':8000
 
 Note: Deactivate Windows network sharing firewall to allow the application to be used on LAN by other devices.
 
@@ -122,31 +93,6 @@ to wllow for injection of the ctl prompt
 Note!: this will run in parrallel for both model using the 'execute_in_parallel' found in 'Parrallel' module 
 Our AI is not only capable of thinking but can also execute actions, commands, and interact with external tools. Additionally, we provide custom tooling for any general action needed based on the design of the control message.
 
-**System Structure**
-=====================
-
-### Directory Structure
-
-The general structure of the app is as follows:
-
-C:.
-├───accounts
-│   ├───migrations
-│   ├───templates
-├───ai_api
-│   ├───Ai
-│   ├───filesManager
-│   ├───MemoryModule
-│   ├───migrations
-│   ├───Parrallel
-├───assesstant_ai
-├───core
-│   ├───migrations
-│   ├───static
-│   │   └───css
-│   ├───templates
-├───media
-│   └───uploads
 
 **Core System Project File**
 ---------------------------
