@@ -3,16 +3,96 @@
 
 We present an AI personal assistant application that aims to be helpful, efficient, and make life easy for users. Our AI is designed to be dynamic, with the potential to develop its own personality in later updates.
 
+
+
+
+## Installation:
+
+**Note:** Install Python as a prerequisite and add it to the PATH.
+
+1. Create a folder `<name_example>`.
+2. Navigate to `<name_example>`: `cd <name_example>`.
+3. Create a virtual environment: `python -m venv <env_name>`.
+4. Navigate to `<env_name>`: `cd <env_name>`.
+5. Activate the environment: 
+	`<.\Scripts\activate>`
+6. Clone the repository:
+	`<git clone https://github.com/AmirAlasady/sting-ray.git>`
+7. Navigate to the cloned repository: `cd .\sting-ray\`.
+8. Install requirements:
+	`<pip install -r .\requirements.txt>`
+9. Navigate to the `/sting-ray.git/root_config.py` file in the project and configure the options:
+```python
+config={
+    "mode_name_online":'llama3-70b-8192', # model name for online API
+    "api_key_online":'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', # put your key here from https://console.groq.com/keys
+    "mode_name_offline":'llama3', # offline local model name
+    "api_key_offline":'http://localhost:11434', # offline local endpoint
+    "context_window":50, # context window "bigger is better but takes a lot of resources *not recommended for low-end devices to set above 50*"
+    "root_ip_host":'127.0.0.1' # root IP *change this to local LAN IP for LAN usage or general deployment IP*
+}
+
+ChatGPT
+Sure, here's the provided text formatted in Markdown:
+
+markdown
+Copy code
+## Installation:
+
+**Note:** Install Python as a prerequisite and add it to the PATH.
+
+1. Create a folder `<name_example>`.
+2. Navigate to `<name_example>`: `cd <name_example>`.
+3. Create a virtual environment: `python -m venv <env_name>`.
+4. Navigate to `<env_name>`: `cd <env_name>`.
+5. Activate the environment:
+.\Scripts\activate
+
+markdown
+Copy code
+6. Clone the repository:
+git clone https://github.com/AmirAlasady/sting-ray.git
+
+markdown
+Copy code
+7. Navigate to the cloned repository: `cd .\sting-ray\`.
+8. Install requirements:
+pip install -r .\requirements.txt
+
+bash
+Copy code
+9. Navigate to the `/sting-ray.git/root_config.py` file in the project and configure the options:
+```python
+config={
+    "mode_name_online":'llama3-70b-8192', # model name for online API
+    "api_key_online":'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', # put your key here from https://console.groq.com/keys
+    "mode_name_offline":'llama3', # offline local model name
+    "api_key_offline":'http://localhost:11434', # offline local endpoint
+    "context_window":50, # context window "bigger is better but takes a lot of resources *not recommended for low-end devices to set above 50*"
+    "root_ip_host":'127.0.0.1' # root IP *change this to local LAN IP for LAN usage or general deployment IP*
+}
+You can run this on LAN by changing the root_ip_host to your own device IP and saving the changes.
+10. Run the server on the IP you selected on root_ip_host at port 8000:
+- For local use: python -m manage runserver 127.0.0.1:8000
+- For LAN use: python -m manage runserver <your LAN private IP>:8000
+
+Note: Deactivate Windows network sharing firewall to allow the application to be used on LAN by other devices.
+
+
+
+
 **Core Features**
 ---------------
 
 ### 1. Multiple AI Model Support
 
-Our system supports multiple AI models, including online models through APIs and a local offline API. Additionally, we provide a basic, customizable Transformer model that is ready for training on custom user data.
+Our system supports multiple AI models based on the 'Ai' base class , including online models through APIs and a local offline API. Additionally, we provide a basic, customizable Transformer model that is ready for training on custom user data. 
 
 ### 2. Multiple Conversations
 
-We support multiple conversations, each with its own separate memory system. However, in offline mode, conversations share a single memory system for memory efficiency.
+We support multiple conversations, each with its own separate memory system.  
+we have a seprate memory system for each conversation, and in the single conversation the memory is shared withen the 2 ai models (online, offline)
+
 
 ### 3. AI Responses and Content Generation
 
@@ -21,9 +101,25 @@ In each conversation, the AI can respond and generate content based on user quer
 ### 4. RAG System Support
 
 Our system supports a RAG (Read, Analyze, Generate) system, which allows users to upload files (currently only text and PDF formats are supported).
+where the user can chat with his own data sources 
 
 ### 5. Agent Mode
-
+(advanced use cases only by modifing the 'ctl_prompt' in the (Ai) bas class module)
+you can configre a custom prompt to allo for agentic behavior 
+then by unmarcking the 
+"""
+        if not chats.exists():
+           l3on_ctl=llama3_online.ctl
+           l3of_ctl=llama3_offline.ctl
+           func1 = llama3_online.ask_online
+           args1 = (l3on_ctl, mem)
+           func2 = llama3_offline.ask_offline
+           args2 = (l3of_ctl, mem)
+           execute_in_parallel(func1, func2, args1, args2) # Execute the functions in parallel
+        """
+in the 'ai_api.views' file 
+to wllow for injection of the ctl prompt 
+Note!: this will run in parrallel for both model using the 'execute_in_parallel' found in 'Parrallel' module 
 Our AI is not only capable of thinking but can also execute actions, commands, and interact with external tools. Additionally, we provide custom tooling for any general action needed based on the design of the control message.
 
 **System Structure**
@@ -33,23 +129,24 @@ Our AI is not only capable of thinking but can also execute actions, commands, a
 
 The general structure of the app is as follows:
 
-* `accounts`
-	+ `migrations`
-	+ `templates`
-	+ `__pycache__`
-* `ai_api`
-	+ `migrations`
-	+ `__pycache__`
-* `assesstant_ai`
-	+ `__pycache__`
-* `core`
-	+ `migrations`
-	+ `static`
-		- `css`
-	+ `templates`
-	+ `__pycache__`
-* `media`
-	+ `uploads`
+C:.
+├───accounts
+│   ├───migrations
+│   ├───templates
+├───ai_api
+│   ├───Ai
+│   ├───filesManager
+│   ├───MemoryModule
+│   ├───migrations
+│   ├───Parrallel
+├───assesstant_ai
+├───core
+│   ├───migrations
+│   ├───static
+│   │   └───css
+│   ├───templates
+├───media
+│   └───uploads
 
 **Core System Project File**
 ---------------------------

@@ -1,9 +1,8 @@
 {% extends "base.html" %}
 
 {% block title %}Chat Details{% endblock %}
-
 {% block content %}
-<<style>
+<style>
   /* Make the background dark gray */
   body {
     background-color: #131f24;
@@ -20,37 +19,6 @@
     border: 1px solid #666;
     border-radius: 10px;
     background-color: #131f24;
-  }
-
-  /* Style the form */
-  form {
-    max-width: 600px;
-    margin: 0 auto; /* Center the form */
-    padding: 20px;
-    border: 1px solid #666;
-    position: fixed;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-    text-align: center;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    bottom: 20px;
-    z-index: 999; /* Ensure it appears above other elements */
-  }
-
-  #myForm {
-    position: fixed;
-    bottom: 20px;
-    left: 50%;
-    transform: translateX(-50%);
-    max-width: 600px;
-    margin: 0 auto; /* Center horizontally */
-    padding: 20px;
-    border: 1px solid #666;
-    border-radius: 10px;
-    background-color: #f9f9f9;
-    text-align: center;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
-    z-index: 999; /* Ensure it appears above other elements */
   }
 
   /* Style the files list */
@@ -95,6 +63,24 @@
     white-space: nowrap;
   }
 
+  /* Style the forms */
+  form {
+    
+    max-width: 600px;
+    padding: 20px;
+    border: 1px solid #666;
+    position: absolute;
+    border-radius: 10px;
+    background-color: #f9f9f9;
+    text-align: center;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+    z-index: 1; /* Initial z-index */
+  }
+
+  form:focus {
+    z-index: 999; /* Bring to front on focus */
+  }
+
   /* Adjust button margin */
   button[type="submit"],
   .audio-btn {
@@ -118,31 +104,49 @@
   .ai {
     background-color: #007bff; /* Dark blue background */
   }
+
+  /* New styles for draggable forms */
+  .draggable {
+    position: fixed;
+    cursor: move;
+    touch-action: none;
+  }
+
+  .draggable-handle {
+
+    background-color: #007bff;
+    height: 20px;
+    width: 100%;
+    cursor: move;
+  }
 </style>
 
-<aside id="file-list">
+<aside id="file-list" >
   <br>
   <br>
   <br>
+  <h1 class="conv-header">{{ conv_name }}</h1>
   <h2>Files</h2>
   <ul>
     {% for file in files_data %}
     <li>
-        <span class="file-name">{{ file.file }}</span>    
-        <button class="delete-btn" onclick="if(confirm('deleate file')) { location.href='{% url 'deleate_file' pk=pk id=file.id%}'; }">Delete</button>
-    </li>
+      <span class="file-name">{{ file.file }}</span>    
+      <button class="delete-btn" onclick="if(confirm('deleate file')) { location.href='{% url 'deleate_file' pk=pk id=file.id%}'; }">Delete</button></li>
+    
     {% empty %}
     <li>No files found.</li>
     {% endfor %}
 </ul>
-  <form id="upload-form" method="post" action="{% url 'upload_file' pk %}" enctype="multipart/form-data">
-    {% csrf_token %}
-      <h3>Upload File</h3>
-      <label for="file_upload">Select a file:</label><br>
-      <input type="file" id="file_upload" name="file" required><br><br>
-      <button type="submit">Upload</button>
-  </form>
 </aside>
+
+<form id="upload-form" method="post" action="{% url 'upload_file' pk %}" enctype="multipart/form-data" class="draggable">
+  {% csrf_token %}
+  <div class="draggable-handle"></div>
+  <h3>Upload File</h3>
+  <label for="file_upload">Select a file:</label><br>
+  <input type="file" id="file_upload" name="file" required><br><br>
+  <button type="submit">Upload</button>
+</form>
 
 <h1 style="text-align: center;">Chat Details</h1>
 <ul class="chat-list">
@@ -172,8 +176,9 @@
   {% endfor %}
 </ul>
 
-<form method="post" action="{% url 'ask' pk %}" id="myForm">
+<form method="post" action="{% url 'ask' pk %}" id="myForm" class="draggable">
   {% csrf_token %}
+  <div class="draggable-handle"></div>
   <label for="option">Choose an Option:</label>
   <select id="option" name="option" required>
       <option value="option1">Online</option>
@@ -181,22 +186,120 @@
   </select>
   <br><br>
   <label for="query">Your Query:</label>
-  <input type="text" id="query" name="query" maxlength="9000">
-  <button type="button" id="start-audio" class="audio-btn"> Hold to Speak</button>
+  <input type="text" id="query" name="query" maxlength="9000" required>
+  <button type="button" id="start-audio" class="audio-btn">Hold to Speak</button>
   <br>
-  <label for="system">system: (optional)</label>
+  <label for="system">System: Note using system prompt will deactivate agent behavior! </label>
   <input type="text" id="system" name="system" placeholder="Optional" maxlength="5000">
   <br><br>
   <button type="submit">Submit</button>
 </form>
+
 <script>
   function scrollBtn(){
     window.scrollTo(0,document.body.scrollHeight);
   };
+  scrollBtn()
   const form = document.getElementById('myForm');
 
-  scrollBtn()
-  // Add Javascript to handle copy button functionality
+  
+  
+  // Function to make elements draggable
+  function makeDraggable(element) {
+    let pos1 = 0,
+      pos2 = 0,
+      pos3 = 0,
+      pos4 = 0;
+
+    // Get the draggable handle within the element
+    const draggableHandle = element.querySelector('.draggable-handle');
+
+    // Function to handle mouse down event
+    function dragMouseDown(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // get the mouse cursor position at startup:
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      document.onmouseup = closeDragElement;
+      // call a function whenever the cursor moves:
+      document.onmousemove = elementDrag;
+    }
+
+    // Function to handle touch start event
+    function dragTouchStart(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // get the touch position at startup:
+      var touch = e.touches[0];
+      pos3 = touch.clientX;
+      pos4 = touch.clientY;
+      document.ontouchend = closeDragElement;
+      // call a function whenever the finger moves:
+      document.ontouchmove = elementDragTouch;
+    }
+
+    // Function to handle element drag event for mouse
+    function elementDrag(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // calculate the new cursor position:
+      pos1 = pos3 - e.clientX;
+      pos2 = pos4 - e.clientY;
+      pos3 = e.clientX;
+      pos4 = e.clientY;
+      // set the element's new position:
+      element.style.top = (element.offsetTop - pos2) + "px";
+      element.style.left = (element.offsetLeft - pos1) + "px";
+    }
+
+    // Function to handle element drag event for touch
+    function elementDragTouch(e) {
+      e = e || window.event;
+      e.preventDefault();
+      // calculate the new touch position:
+      var touch = e.touches[0];
+      pos1 = pos3 - touch.clientX;
+      pos2 = pos4 - touch.clientY;
+      pos3 = touch.clientX;
+      pos4 = touch.clientY;
+      // set the element's new position:
+      element.style.top = (element.offsetTop - pos2) + "px";
+      element.style.left = (element.offsetLeft - pos1) + "px";
+    }
+
+    // Function to handle mouse up event
+    function closeDragElement() {
+      // stop moving when mouse button is released:
+      document.onmouseup = null;
+      document.onmousemove = null;
+      document.ontouchend = null;
+      document.ontouchmove = null;
+    }
+
+    // Add event listener to the draggable handle for drag functionality for mouse
+    draggableHandle.onmousedown = dragMouseDown;
+    // Add event listener to the draggable handle for drag functionality for touch
+    draggableHandle.ontouchstart = dragTouchStart;
+  }
+
+  // Apply draggable functionality to all elements with class "draggable"
+  const draggableElements = document.querySelectorAll('.draggable');
+  draggableElements.forEach(element => {
+    makeDraggable(element);
+  });
+
+  // Bring the focused form to front
+  draggableElements.forEach(form => {
+    form.addEventListener('touchstart', () => {
+      form.style.zIndex = 999;
+    });
+    form.addEventListener('focus', () => {
+      form.style.zIndex = 999;
+    });
+  });
+
+
   const copyButtons = document.querySelectorAll('.copy-btn');
   copyButtons.forEach(button => {
     button.addEventListener('click', () => {
@@ -280,7 +383,8 @@ readButtons.forEach(button => {
       speechSynthesis.speak(speechSynthesisUtterance);
     }
   });
-});
-</script>
-{% endblock %}
+})
 
+</script>
+
+{% endblock %}

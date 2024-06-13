@@ -3,7 +3,7 @@ import requests
 from rest_framework.response import Response
 from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import IsAuthenticated
-from core.views import host
+import root_config 
 
 @api_view(["GET"])
 @permission_classes([IsAuthenticated])
@@ -32,7 +32,7 @@ def Signup(request):
         're_password': re_password
         }
 
-        url = f"http://{host}:8000/api/auth/users/"
+        url = f"http://{root_config.config['root_ip_host']}:8000/api/auth/users/"
 
         response = requests.post(url, json=data)
 
@@ -58,7 +58,7 @@ def login(request):
         'password': password,
         }
 
-        url = f"http://{host}:8000/api/auth/jwt/create/"
+        url = f"http://{root_config.config['root_ip_host']}:8000/api/auth/jwt/create/"
         response = requests.post(url, json=data)
 
         # Check the response status code
