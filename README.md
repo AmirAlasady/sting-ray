@@ -111,8 +111,6 @@ Our AI is not only capable of thinking but can also execute actions, commands, a
 
 ## How to Use the System:
 
-## How to Use the System:
-
 1. Run the server as explained earlier.
    ![Step 1](https://github.com/AmirAlasady/sting-ray/assets/96434221/75dd5c08-b2e8-4f0c-ae85-e906040b1dfe)
 
