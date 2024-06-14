@@ -8,7 +8,7 @@ import root_config
 def get_token():
     url = f"http://{root_config.config['root_ip_host']}:8000/api/auth/jwt/create/"
     data = {
-        'email': 'gtavidk12343@gmail.com',
+        'email': 'test_email@test.com',
         'password': '12345abce'
     }
     response = requests.post(url, json=data)

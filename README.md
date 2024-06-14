@@ -43,12 +43,28 @@ config={
 ```
 
 You can run this on LAN by changing the root_ip_host to your own device IP and saving the changes.
+
+
 10. Run the server on the IP you selected on root_ip_host at port 8000:
 - For local use: python -m manage runserver 127.0.0.1:8000
 - For LAN use: python -m manage runserver 'your LAN private IP':8000
-
 Note: Deactivate Windows network sharing firewall to allow the application to be used on LAN by other devices.
 
+11. To enable offline models, there are two options:
+
+a) Download open-source models from Hugging Face and adopt them to the AI class and the `ask` method, or from Ollama framework.
+b) Train the pre-implemented transformer model on your custom dataset.
+
+We will initialize with Ollama's 'llama 3 8B' model, but you can install any model you want from the hub.
+
+To install Ollama:
+1. [Download Ollama for Windows](https://ollama.com/download/windows).
+2. Set it up.
+3. To view and select models, visit the model hub at [Ollama Model Library](https://ollama.com/library).
+4. Open CMD and run `ollama run 'model_name'`. In our case, it's 'llama3', so it'll be `ollama run llama3`. This will install the model if not already installed on the local machine and may take some time based on your internet speed. Next time you run the command, 'llama3' will be installed already from the first time, so it will launch faster.
+5. After installing the model, expose it as an API endpoint by running the command `ollama serve` to start the Ollama server. Now you can use the offline model from the web app and engage in conversations.
+
+Note: Each time the system restarts, the memory will be removed.
 
 
 
@@ -93,6 +109,52 @@ to wllow for injection of the ctl prompt
 Note!: this will run in parrallel for both model using the 'execute_in_parallel' found in 'Parrallel' module 
 Our AI is not only capable of thinking but can also execute actions, commands, and interact with external tools. Additionally, we provide custom tooling for any general action needed based on the design of the control message.
 
+## How to Use the System:
+
+## How to Use the System:
+
+1. Run the server as explained earlier.
+   ![Step 1](https://github.com/AmirAlasady/sting-ray/assets/96434221/75dd5c08-b2e8-4f0c-ae85-e906040b1dfe)
+
+2. Open the URL link `http://<your_private_ip_or_local_host>:8000/showconvs`. You will be granted with the about page.
+
+### About:
+![About](https://github.com/AmirAlasady/sting-ray/assets/96434221/ce3fa527-ddd4-442b-87f7-270cab5d3faf)
+Note: This is just a dummy frontend. We use a headless system, and anyone can create a custom frontend by using the APIs provided. However, this is just a simple head for testing. Keep in mind that the login and sign-up pages' forms are just a demo showcase to create accounts in the system. It's not required to create an account to use this dummy frontend for fast use.
+
+3. Navigate to the conversations tab and create a conversation.
+   ![Step 3](https://github.com/AmirAlasady/sting-ray/assets/96434221/a3e1b9ae-1b67-4da8-ba19-6e4b572284d1)
+
+4. You can also rename/del the conversation and everything will be removed.
+5. By pressing on the conversation name, you will be able to access the system and have a chat with audio (if the browser allows for it) and text.
+   ![Step 5](https://github.com/AmirAlasady/sting-ray/assets/96434221/82f08725-8c9d-43a3-855f-abec839bb7b3) Note: you can move the forms as you like freely by dragging them to anywhere you want on the screen from the blue bar on top.
+
+6. You can select between online or offline models by checking the option.
+   ![Online Option](https://github.com/AmirAlasady/sting-ray/assets/96434221/0816ec01-ffe7-400f-a4b9-d997b1f0dc61)
+
+7. You can use the system prompt to control the simple behavior of the system.
+   ![Step 7](https://github.com/AmirAlasady/sting-ray/assets/96434221/0fc4c78f-1ee0-4b62-a0bb-65e47768e6ad)
+
+8. You can upload multiple PDF, TXT files to the system to allow for RAG and a chat with your documents. As an example, we will include a needle in a haystack test. We will inject random text, a secret word of Amir, which is 'hi i love fish', and see if the model knows it or not.
+   ![Step 8](https://github.com/AmirAlasady/sting-ray/assets/96434221/20715972-1756-4683-93ae-e43e7469dddd)
+   Now let's import it to the chat files. Keep in mind that uploading files will take some time because we use chunking and we inject the data into the two models in parallel.
+   ![Step 8 - Continued](https://github.com/AmirAlasady/sting-ray/assets/96434221/e181ae18-7c16-46e5-9ffa-b3449dd6387b)
+
+9. All conversations use separate memory units, thus the AI doesn't know about things from different conversations.
+   ![Offline](https://github.com/AmirAlasady/sting-ray/assets/96434221/4f2fe7a7-c63b-48c9-aef8-2779042fc24d)
+
+10. Online and offline AI use the same memory in one conversation; thus, you can use any of them at any time in the conversation. Let's ask the offline model about what Amir's secret word is to see if it knows it. So first, change to offline mode. You can do the same test by using the offline mode in the beginning and then changing to online; it'll work the same.
+    ![Step 10](https://github.com/AmirAlasady/sting-ray/assets/96434221/70f4eb2e-4aff-4873-8490-9c5df1e3dcc1)
+    It knew about it as planned.
+
+
+11. you can manage the system by creating a new admin account or use the test admin account provided by default 
+with the credentials as 
+Email: admin@test.com
+Username: admin
+First name: admin1
+Last name: admin2
+pass: 123
 
 **Core System Project File**
 ---------------------------
@@ -125,34 +187,9 @@ urlpatterns = [
 ]
 ```
 
-**Usage**
-=======
 
-1. Clone the repository: `git clone https://github.com/AmirAlasady/sting-ray.git`
-2. Install requirements: `pip install -r requirements.txt`
-3. If using the native frontend, navigate to the server and run it: `python -m manage runserver 8000`
-4. Navigate to the conversations tab and create a conversation
-5. You can delete and change the name of the conversation
-6. Access the conversation and interact with the AI agent
-7. Optionally, upload files through the file upload form (text or PDF only)
-8. Use the system prompt to make the model behave in a certain way
-9. Interact with the system using text or audio input
-10. Responses can be read with an auto-reader if supported by your browser
-11. Select the AI model you want to use in the conversation (online or offline)
-12. To use tools, navigate to `ai_api/views/py` and add custom tools based on the provided format
 
-**Tool Behavior**
-----------------
 
-* Only use a tool if the user's message requires it and can fit the format of the correct tool
-* Respond with the tool format only, without any additional explanations or comments, when a tool is needed
-* If a tool is not needed, respond normally to the user's message
-* **Available Tools**:
-
-| Tool Name | Parameters/Inputs | Output Type | What it Does |
-| --- | --- | --- | --- |
-| add | [number1, number2] | the_sum_of_operands_1_plus_2 | adds the numbers together |
-| sub | [number1, number2] | the_sub_of_operands_1_minuse_2 | subtracts number2 from number1 |
 
 **Message Types**
 ================
